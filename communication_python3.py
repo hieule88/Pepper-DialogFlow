@@ -12,7 +12,7 @@ from google.cloud import texttospeech
 DIALOGFLOW_PROJECT_ID = 'testproject-363201'
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/hieulepc/Pepper-Controller/testproject-363201-117b75239eed.json'
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/hieule/Pepper-DialogFlow/testproject-363201-117b75239eed.json'
-def synthesize_text(text, dir):
+def synthesize_text(text):
     """Synthesizes speech from the input string of text."""
 
     client = texttospeech.TextToSpeechClient()
@@ -36,15 +36,13 @@ def synthesize_text(text, dir):
     )
 
     # The response's audio_content is binary.
-    fname = os.getcwd() + '/tts-temp' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + '.mp3'
+    abspath = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + '.mp3'
+    fname = os.getcwd() + '/tts-temp/' + abspath
     # The response's audio_content is binary.
-    out = open(fname, 'wb')
-    # Write the response to the output file.
-    out.write(response.audio_content)
-    #print('Audio content written to file ' + fname)
-    out.close()
+    with open(fname, "wb") as out:
+        out.write(response.audio_content)
 
-    return fname
+    return fname + '@' + abspath
 
 def detect_intent_texts(session_id, text, language_code='vi-VN'):
     session_client = dialogflow.SessionsClient()
@@ -55,8 +53,23 @@ def detect_intent_texts(session_id, text, language_code='vi-VN'):
         response = session_client.detect_intent(session=session, query_input=query_input)
     except InvalidArgument:    
         raise
+
+    parameters = response.query_result.parameters
+    
+    title = ''
+    amount = ''
+    size = ''
+    floor = ''
+    try:
+        title = parameters['type']
+        size = parameters['size']
+        amount = parameters['amount']
+        floor = parameters['floor']
+    except:
+        pass
+
     if response.query_result.fulfillment_text != "" :
-        return synthesize_text(response.query_result.fulfillment_text)
+        return synthesize_text(response.query_result.fulfillment_text) + '@' + title + '@' + size + '@' + amount + '@' + floor
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -65,5 +78,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     text = args.text
 
-    mp3_file = detect_intent_texts('user-session', text)
-    print(mp3_file)
+    mp3_file_abspath_params = detect_intent_texts('user-session', text)
+    print(mp3_file_abspath_params)

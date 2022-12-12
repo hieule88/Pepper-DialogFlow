@@ -60,6 +60,7 @@ def detect_intent_texts(session_id, text, language_code='vi-VN'):
     amount = ''
     size = ''
     floor = ''
+    intent = response.query_result.intent.display_name
 
     try:
         title = parameters['type']
@@ -70,7 +71,7 @@ def detect_intent_texts(session_id, text, language_code='vi-VN'):
         pass
 
     if response.query_result.fulfillment_text != "" :
-        return synthesize_text(response.query_result.fulfillment_text) + '@' + str(title) + '@' + str(size) + '@' + str(amount) + '@' + str(floor)
+        return synthesize_text(response.query_result.fulfillment_text) + '@' + str(title) + '@' + str(size) + '@' + str(amount) + '@' + str(floor) + '@' + intent 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
